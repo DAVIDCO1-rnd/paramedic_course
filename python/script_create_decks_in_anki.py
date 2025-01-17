@@ -1,6 +1,9 @@
 import genanki
 import os
 import csv
+import utils
+import requests
+import py_ankiconnect
 
 def create_anki_deck_from_csv(csv_file_path, deck_name="My Deck", output_file="output.apkg"):
     """
@@ -70,11 +73,180 @@ def create_anki_deck_from_csv(csv_file_path, deck_name="My Deck", output_file="o
 
     print(f"Deck '{deck_name}' created and saved as '{output_file}'.")
 
+def delete_imported_decks():
+    response = requests.post('http://localhost:8765', json={
+        "action": "findNotes",
+        "version": 6,
+        "params": {
+            "query": "tag:imported_by_script"
+        }
+    })
+
+    if response.status_code == 200:
+        result = response.json()
+        if result.get('error') is None:
+            note_ids = result['result']
+            #print(f"delete_imported_decks: note_ids = {note_ids}")
+
+            if note_ids:
+                response = requests.post('http://localhost:8765', json={
+                    "action": "notesInfo",
+                    "version": 6,
+                    "params": {
+                        "notes": note_ids
+                    }
+                })
+
+                if response.status_code == 200:
+                    result = response.json()
+                    #print(f"notesInfo response: {result}")  # Print the response for debugging
+
+                    if result.get('error') is None:
+                        # Extract card IDs from the notesInfo response
+                        card_ids = [card_id for note in result['result'] for card_id in note['cards']]
+                        #print(f"Card IDs: {card_ids}")
+
+                        # Get deck names using the card IDs
+                        response = requests.post('http://localhost:8765', json={
+                            "action": "cardsInfo",
+                            "version": 6,
+                            "params": {
+                                "cards": card_ids
+                            }
+                        })
+
+                        if response.status_code == 200:
+                            result = response.json()
+                            #print(f"cardsInfo response: {result}")  # Print the response for debugging
+
+                            if result.get('error') is None:
+                                deck_names = {card['deckName'] for card in result['result']}
+                                #print(f"Deck names: {deck_names}")
+
+                                num_of_decks = len(deck_names)
+                                for deck_index, deck_name in enumerate(deck_names):
+                                    response = requests.post('http://localhost:8765', json={
+                                        "action": "deleteDecks",
+                                        "version": 6,
+                                        "params": {
+                                            "decks": [deck_name],
+                                            "cardsToo": True
+                                        }
+                                    })
+
+                                    if response.status_code == 200:
+                                        result = response.json()
+                                        if result.get('error') is None:
+                                            print(f"Successfully deleted deck {deck_name}. Deck {deck_index+1} out of {num_of_decks}")
+                                        else:
+                                            print(f"Error deleting deck {deck_name}: {result['error']}")
+                                    else:
+                                        print(f"Failed to connect to AnkiConnect for deleting deck {deck_name}")
+                            else:
+                                print(f"Error retrieving cards info: {result['error']}")
+                        else:
+                            print(f"Failed to connect to AnkiConnect for retrieving cards info")
+                    else:
+                        print(f"Error retrieving notes info: {result['error']}")
+                else:
+                    print(f"Failed to connect to AnkiConnect for retrieving notes info")
+            else:
+                print("No cards found with the tag 'imported_by_script'")
+        else:
+            print(f"Error finding notes: {result['error']}")
+    else:
+        print(f"Failed to connect to AnkiConnect for finding notes")
+    print('\n')
+
+def import_apkg_files(folder_path):
+    folder_path = os.path.abspath(folder_path)
+    decks_list = os.listdir(folder_path)
+    num_of_decks = len(decks_list)
+
+    for index, file in enumerate(decks_list):
+        if file.endswith('.apkg'):
+            file_path = os.path.join(folder_path, file)
+
+            response = requests.post('http://localhost:8765', json={
+                "action": "importPackage",
+                "version": 6,
+                "params": {
+                    "path": file_path
+                }
+            })
+
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('error') is None:
+                    deck_name = os.path.splitext(file)[0]
+                    deck_name_with_extension = deck_name + '.apkg'
+
+                    response = requests.post('http://localhost:8765', json={
+                        "action": "findNotes",
+                        "version": 6,
+                        "params": {
+                            "query": f"deck:{deck_name_with_extension}"
+                        }
+                    })
+
+                    #print(response.text)  # Print the response text for debugging
+
+                    if response.status_code == 200:
+                        result = response.json()
+                        if result.get('error') is None:
+                            note_ids = result['result']
+                            #print(f"import_apkg_files: note_ids = {note_ids}")
+
+                            if note_ids:
+                                response = requests.post('http://localhost:8765', json={
+                                    "action": "addTags",
+                                    "version": 6,
+                                    "params": {
+                                        "notes": note_ids,
+                                        "tags": "imported_by_script"
+                                    }
+                                })
+
+                                if response.status_code == 200:
+                                    tag_result = response.json()
+                                    if tag_result.get('error') is None:
+                                        print(f"Successfully tagged notes in deck {deck_name} (deck {index+1} out of {num_of_decks})")
+                                    else:
+                                        print(f"Error tagging notes in {deck_name}: {tag_result['error']}")
+                                else:
+                                    print(f"Failed to connect to AnkiConnect for tagging notes in {deck_name}")
+                            else:
+                                print(f"No notes found in deck {deck_name}")
+                        else:
+                            print(f"Error finding notes in {deck_name}: {result['error']}")
+                    else:
+                        print(f"Failed to connect to AnkiConnect for finding notes in {deck_name}")
+                else:
+                    print(f"Error importing {file_path}: {result['error']}")
+            else:
+                print(f"Failed to connect to AnkiConnect for {file_path}")
+    print('\n')
+
 def main():
     current_folder = os.getcwd()
     csv_file_name = 'cards.csv'
-    csv_full_path = os.path.join(current_folder, csv_file_name)
-    create_anki_deck_from_csv(csv_full_path, deck_name="Vocabulary Deck", output_file="vocab.apkg")
+    decks_folder_name = 'anki_decks'
 
+    csv_full_path = os.path.join(current_folder, csv_file_name)
+    decks_folder_full_path = os.path.join(current_folder, decks_folder_name)
+
+    utils.create_empty_folder(decks_folder_full_path)
+
+    output_deck_file_full_path = os.path.join(decks_folder_full_path, "cpr.apkg")
+
+    create_anki_deck_from_csv(csv_full_path, deck_name="Vocabulary Deck", output_file=output_deck_file_full_path)
+
+    delete_imported_decks()
+    import_apkg_files(decks_folder_full_path)
+
+    anki = py_ankiconnect.PyAnkiconnect()
+    anki("sync")
+    print('Successfully synchronized Anki')
+    print('Finished running the code. You may use Anki now')
 
 main()
