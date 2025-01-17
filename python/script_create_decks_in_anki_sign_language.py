@@ -1,4 +1,3 @@
-import csv
 import pytube
 import pytubefix
 import genanki
@@ -432,79 +431,46 @@ def delete_empty_folders(folder_full_path):
         if os.path.isdir(subfolder_full_path) and not os.listdir(subfolder_full_path):
             os.rmdir(subfolder_full_path)
 
-def create_anki_deck_from_csv(csv_file_path, deck_name="My Deck", output_file="output.apkg"):
-    """
-    Reads a two-column CSV file and creates an Anki deck, where
-    the first column is the front side of the card, and the second column is the back side.
-
-    :param csv_file_path: Full path to the CSV file.
-    :param deck_name: Name of the deck to be created.
-    :param output_file: Name of the output .apkg file to be generated.
-    """
-
-    # Create a deck with a random (unique) deck_id
-    # deck_id is just an integer that Anki uses internally to identify the deck,
-    # so we'll use a random or arbitrary number here
-    deck_id = 1234567890
-
-    # Initialize a genanki deck
-    my_deck = genanki.Deck(
-        deck_id=deck_id,
-        name=deck_name
-    )
-
-    # Create a basic model (front / back)
-    # This defines how cards will be rendered in Anki.
-    # You can customize styling or fields as needed.
-    my_model = genanki.Model(
-        model_id=1607392319,
-        name='Simple Model',
-        fields=[
-            {'name': 'Front'},
-            {'name': 'Back'}
-        ],
-        templates=[
-            {
-                'name': 'Card 1',
-                'qfmt': '{{Front}}',
-                'afmt': '{{FrontSide}}<hr id="answer">{{Back}}',
-            },
-        ]
-    )
-
-    # Read the CSV file
-    with open(csv_file_path, 'r', encoding='utf-8-sig') as f:
-        reader = csv.reader(f)
-
-        for row in reader:
-            # Each row is expected to have two columns
-            if len(row) < 2:
-                continue
-
-            front_text = row[0].strip()
-            back_text = row[1].strip()
-
-            note = genanki.Note(
-                model=my_model,
-                fields=[front_text, back_text]
-            )
-
-            # Add the note to the deck
-            my_deck.add_note(note)
-
-    # Create a Package and write to file
-    my_package = genanki.Package(my_deck)
-    # Optionally include media files if needed
-    # my_package.media_files = []
-    my_package.write_to_file(output_file)
-
-    print(f"Deck '{deck_name}' created and saved as '{output_file}'.")
-
 def main():
+    main_video_folder_name = 'sign_language_videos_from_youtube'
+    no_duplicates_video_name = 'sign_language_videos_from_youtube_no_duplicates'
+    split_main_video_folder_name = 'split_' + main_video_folder_name
+    decks_folder_name = 'anki_decks'
+    video_extension = '.mp4'
+    max_num_of_files_in_folders = 20
+
     current_folder = os.getcwd()
-    csv_file_name = 'cards.csv'
-    csv_full_path = os.path.join(current_folder, csv_file_name)
-    create_anki_deck_from_csv(csv_full_path, deck_name="Vocabulary Deck", output_file="vocab.apkg")
+    main_video_folder_full_path = os.path.join(current_folder, main_video_folder_name)
+    no_duplicates_video_folder_full_path = os.path.join(current_folder, no_duplicates_video_name)
+    split_main_video_folder_full_path = os.path.join(current_folder, split_main_video_folder_name)
+    decks_folder_full_path = os.path.join(current_folder, decks_folder_name)
+
+    #utils.delete_folder(main_video_folder_full_path)
+    #download_youtube_playlists(main_video_folder_full_path)
+    utils.delete_folder(no_duplicates_video_folder_full_path)
+    try:
+        shutil.copytree(main_video_folder_full_path, no_duplicates_video_folder_full_path)
+    except Exception as e:
+        print(f"Error copying folder: {e}")
+    remove_whitespaces(no_duplicates_video_folder_full_path)
+    shorten_video_names(no_duplicates_video_folder_full_path, video_extension)
+    remove_duplicate_names(no_duplicates_video_folder_full_path)
+    delete_empty_folders(no_duplicates_video_folder_full_path)
+
+    utils.delete_folder(split_main_video_folder_full_path)
+    try:
+        shutil.copytree(no_duplicates_video_folder_full_path, split_main_video_folder_full_path)
+    except Exception as e:
+        print(f"Error copying folder: {e}")
+    split_videos_in_subfolders(split_main_video_folder_full_path, max_num_of_files_in_folders)
+    create_decks_in_anki(folder_path=split_main_video_folder_full_path, decks_folder_full_path=decks_folder_full_path)
+    delete_imported_decks()
+    import_apkg_files(decks_folder_full_path)
+
+    anki = py_ankiconnect.PyAnkiconnect()
+    anki("sync")
+    print('Successfully synchronized Anki')
+    print('Finished running the code. You may use Anki now')
 
 
 main()
