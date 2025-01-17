@@ -1,0 +1,9 @@
+genanki
+pytube
+pytubefix
+beautifulsoup4
+requests
+anki
+py-ankiconnect
+aiohttp
+nltk
