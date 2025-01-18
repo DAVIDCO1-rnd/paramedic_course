@@ -7,3 +7,4 @@ anki
 py-ankiconnect
 aiohttp
 nltk
+psutil

@@ -4,6 +4,7 @@ import csv
 import utils
 import requests
 import py_ankiconnect
+import psutil
 
 def create_anki_deck_from_csv(csv_file_path, deck_name="My Deck", output_file="output.apkg"):
     """
@@ -227,6 +228,21 @@ def import_apkg_files(folder_path):
                 print(f"Failed to connect to AnkiConnect for {file_path}")
     print('\n')
 
+
+def is_anki_running():
+    """
+    Checks if Anki is running by looking at the list of active processes.
+    Returns True if Anki is found, False otherwise.
+    """
+    # The exact name may vary by OS (e.g., "anki.exe" on Windows).
+    possible_names = ["anki", "anki.exe"]
+
+    for proc in psutil.process_iter(['pid', 'name']):
+        if proc.info['name'] in possible_names:
+            return True
+
+    return False
+
 def main():
     current_folder = os.getcwd()
     csv_file_name = 'cards.csv'
@@ -237,16 +253,25 @@ def main():
 
     utils.create_empty_folder(decks_folder_full_path)
 
-    output_deck_file_full_path = os.path.join(decks_folder_full_path, "cpr.apkg")
 
-    create_anki_deck_from_csv(csv_full_path, deck_name="Vocabulary Deck", output_file=output_deck_file_full_path)
+    deck_extension = 'apkg'
 
-    delete_imported_decks()
-    import_apkg_files(decks_folder_full_path)
+    deck_name = 'cpr3'
+    deck_name_with_extension = deck_name + '.' + deck_extension
+    output_deck_file_full_path = os.path.join(decks_folder_full_path, deck_name_with_extension)
 
-    anki = py_ankiconnect.PyAnkiconnect()
-    anki("sync")
-    print('Successfully synchronized Anki')
-    print('Finished running the code. You may use Anki now')
+    create_anki_deck_from_csv(csv_full_path, deck_name=deck_name, output_file=output_deck_file_full_path)
+
+    if is_anki_running():
+        delete_imported_decks()
+        import_apkg_files(decks_folder_full_path)
+        anki = py_ankiconnect.PyAnkiconnect()
+        anki("sync")
+        print('Successfully synchronized Anki')
+        print('Finished running the code. You may use Anki now')
+    else:
+        print("Anki is not running.")
+
+
 
 main()
