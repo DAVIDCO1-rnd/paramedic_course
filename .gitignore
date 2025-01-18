@@ -2,3 +2,4 @@
 **/*.apkg
 **/__pycache__
 **/*sign_language_videos_from_youtube*
+**/.~*

@@ -256,7 +256,7 @@ def main():
 
     deck_extension = 'apkg'
 
-    deck_name = 'cpr3'
+    deck_name = 'cpr'
     deck_name_with_extension = deck_name + '.' + deck_extension
     output_deck_file_full_path = os.path.join(decks_folder_full_path, deck_name_with_extension)
 
