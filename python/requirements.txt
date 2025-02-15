@@ -8,3 +8,7 @@ py-ankiconnect
 aiohttp
 nltk
 psutil
+pdf2docx
+aspose-pdf
+pdfminer.six
+python-docx
