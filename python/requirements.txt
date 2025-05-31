@@ -12,3 +12,5 @@ pdf2docx
 aspose-pdf
 pdfminer.six
 python-docx
+yt-dlp
+openai-whisper
