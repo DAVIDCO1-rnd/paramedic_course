@@ -10,13 +10,9 @@ def generate_hebrew_subtitles(video_path, srt_path, use_cpu_if_needed=True):
     """
     print("🎙️ Loading Whisper model...")
 
-    # Choose a smaller model to fit most GPUs (or run on CPU)
     try:
-        if use_cpu_if_needed:
-            model = whisper.load_model("base", device="cpu")
-        else:
-            model = whisper.load_model("base")
-    except RuntimeError as e:
+        model = whisper.load_model("base", device="cpu" if use_cpu_if_needed else None)
+    except RuntimeError:
         print("⚠️ Error loading model on GPU. Falling back to CPU...")
         model = whisper.load_model("base", device="cpu")
 
@@ -24,7 +20,9 @@ def generate_hebrew_subtitles(video_path, srt_path, use_cpu_if_needed=True):
     result = model.transcribe(video_path, language='he', task='transcribe')
 
     print(f"📝 Writing subtitles to: {srt_path}")
-    whisper.utils.WriteSRT(result["segments"], srt_path)
+    writer = whisper.utils.get_writer("srt", os.path.dirname(srt_path))
+    writer(result, os.path.splitext(os.path.basename(srt_path))[0])
+
 
 def embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path):
     """
@@ -60,20 +58,20 @@ def main():
     output_folder_name = "CPR"
     current_folder = os.getcwd()
     output_folder_full_path = os.path.join(current_folder, output_folder_name)
-    input_filename = "cpr_part1.mp4"
+    input_filename = "cpr1.mkv"
 
     video_path = os.path.join(output_folder_full_path, input_filename)
     subtitle_path = os.path.join(output_folder_full_path, "hebrew_subs.srt")
-    output_path = os.path.join(output_folder_full_path, "cpr_part1_with_subs.mp4")
+    output_path = os.path.join(output_folder_full_path, "cpr1_with_subtitles.mkv")
 
-    # youtube_url = "https://www.youtube.com/watch?v=znjUfbXBptw"
+    # youtube_url = "https://www.youtube.com/watch?v=m3_cBwZViyg&t=1s"
     # output_folder_name = "CPR"
     # current_folder = os.getcwd()
     # output_folder_full_path = os.path.join(current_folder, output_folder_name)
     # os.makedirs(output_folder_full_path, exist_ok=True)
     # download_with_ytdlp(youtube_url, output_folder_full_path)
 
-    generate_hebrew_subtitles(video_path, subtitle_path)
+    #generate_hebrew_subtitles(video_path, subtitle_path)
     embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path)
 
 if __name__ == "__main__":
