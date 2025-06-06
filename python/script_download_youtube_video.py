@@ -3,25 +3,27 @@ import subprocess
 import whisper
 import yt_dlp
 
-def generate_hebrew_subtitles(video_path, srt_path, use_cpu_if_needed=True):
-    """
-    Transcribes Hebrew subtitles from a local video using Whisper.
-    Automatically falls back to CPU or smaller model if needed.
-    """
-    print("🎙️ Loading Whisper model...")
+def generate_hebrew_subtitles(video_path, srt_path):
+    import torch
+    import whisper
 
-    try:
-        model = whisper.load_model("base", device="cpu" if use_cpu_if_needed else None)
-    except RuntimeError:
-        print("⚠️ Error loading model on GPU. Falling back to CPU...")
-        model = whisper.load_model("base", device="cpu")
+    print("🎙️ Loading Whisper 'large' model for improved accuracy...")
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = whisper.load_model("large", device=device)
 
     print(f"🔊 Transcribing audio from: {video_path}")
-    result = model.transcribe(video_path, language='he', task='transcribe')
+    result = model.transcribe(
+        video_path,
+        language='he',
+        task='transcribe',
+        initial_prompt="החייאה, עיסויי חזה, דום לב, נתיב אוויר, הנשמה"
+    )
 
     print(f"📝 Writing subtitles to: {srt_path}")
     writer = whisper.utils.get_writer("srt", os.path.dirname(srt_path))
     writer(result, os.path.splitext(os.path.basename(srt_path))[0])
+
 
 
 def embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path):
@@ -71,8 +73,8 @@ def main():
     # os.makedirs(output_folder_full_path, exist_ok=True)
     # download_with_ytdlp(youtube_url, output_folder_full_path)
 
-    #generate_hebrew_subtitles(video_path, subtitle_path)
-    embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path)
+    generate_hebrew_subtitles(video_path, subtitle_path)
+    #embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path)
 
 if __name__ == "__main__":
     main()
