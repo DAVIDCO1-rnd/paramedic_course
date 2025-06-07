@@ -2,27 +2,49 @@ import os
 import subprocess
 import whisper
 import yt_dlp
+import torch
 
 def generate_hebrew_subtitles(video_path, srt_path):
-    import torch
-    import whisper
+    """
+    Transcribes Hebrew subtitles from a local video using Whisper.
+    Uses 'medium' model for improved accuracy. Falls back to CPU if needed.
+    """
+    print("🎙️ Loading Whisper 'medium' model for improved accuracy...")
 
-    print("🎙️ Loading Whisper 'large' model for improved accuracy...")
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model("large", device=device)
+    try:
+        # Try loading the medium model on GPU if available
+        if torch.cuda.is_available():
+            device = "cuda"
+            try:
+                model = whisper.load_model("medium", device=device)
+            except RuntimeError as e:
+                print("⚠️ CUDA out of memory. Falling back to CPU...")
+                model = whisper.load_model("medium", device="cpu")
+        else:
+            model = whisper.load_model("medium", device="cpu")
+    except Exception as e:
+        print(f"❌ Failed to load model: {e}")
+        return
 
     print(f"🔊 Transcribing audio from: {video_path}")
-    result = model.transcribe(
-        video_path,
-        language='he',
-        task='transcribe',
-        initial_prompt="החייאה, עיסויי חזה, דום לב, נתיב אוויר, הנשמה"
-    )
+    try:
+        result = model.transcribe(
+            video_path,
+            language='he',
+            task='transcribe',
+            initial_prompt="החייאה, עיסויי חזה, נתיב אוויר, דום לב, החייאת תינוקות, הנשמה, בדיקת דופק"
+        )
+    except Exception as e:
+        print(f"❌ Failed during transcription: {e}")
+        return
 
     print(f"📝 Writing subtitles to: {srt_path}")
-    writer = whisper.utils.get_writer("srt", os.path.dirname(srt_path))
-    writer(result, os.path.splitext(os.path.basename(srt_path))[0])
+    try:
+        writer = whisper.utils.get_writer("srt", os.path.dirname(srt_path))
+        writer(result, os.path.splitext(os.path.basename(srt_path))[0])
+        print("✅ Subtitles saved successfully.")
+    except Exception as e:
+        print(f"❌ Failed to write subtitles: {e}")
 
 
 
@@ -60,13 +82,13 @@ def main():
     output_folder_name = "CPR"
     current_folder = os.getcwd()
     output_folder_full_path = os.path.join(current_folder, output_folder_name)
-    input_filename = "cpr1.mkv"
+    input_filename = "cpr2.mkv"
 
     video_path = os.path.join(output_folder_full_path, input_filename)
     subtitle_path = os.path.join(output_folder_full_path, "hebrew_subs.srt")
-    output_path = os.path.join(output_folder_full_path, "cpr1_with_subtitles.mkv")
+    output_path = os.path.join(output_folder_full_path, "cpr2_with_subtitles.mkv")
 
-    # youtube_url = "https://www.youtube.com/watch?v=m3_cBwZViyg&t=1s"
+    # youtube_url = "https://www.youtube.com/watch?v=oZeI9LNO7rI"
     # output_folder_name = "CPR"
     # current_folder = os.getcwd()
     # output_folder_full_path = os.path.join(current_folder, output_folder_name)
@@ -74,7 +96,7 @@ def main():
     # download_with_ytdlp(youtube_url, output_folder_full_path)
 
     generate_hebrew_subtitles(video_path, subtitle_path)
-    #embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path)
+    embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path)
 
 if __name__ == "__main__":
     main()
