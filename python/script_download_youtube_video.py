@@ -82,13 +82,13 @@ def main():
     output_folder_name = "CPR"
     current_folder = os.getcwd()
     output_folder_full_path = os.path.join(current_folder, output_folder_name)
-    input_filename = "cpr2.mkv"
+    input_filename = "cpr5.mkv"
 
     video_path = os.path.join(output_folder_full_path, input_filename)
     subtitle_path = os.path.join(output_folder_full_path, "hebrew_subs.srt")
-    output_path = os.path.join(output_folder_full_path, "cpr2_with_subtitles.mkv")
+    output_path = os.path.join(output_folder_full_path, "cpr5_with_subtitles.mkv")
 
-    # youtube_url = "https://www.youtube.com/watch?v=oZeI9LNO7rI"
+    # youtube_url = "https://www.youtube.com/watch?v=yQsSXnkkYyE&t=4s"
     # output_folder_name = "CPR"
     # current_folder = os.getcwd()
     # output_folder_full_path = os.path.join(current_folder, output_folder_name)
