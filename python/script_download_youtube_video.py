@@ -7,21 +7,21 @@ import torch
 def generate_hebrew_subtitles(video_path, srt_path):
     """
     Transcribes Hebrew subtitles from a local video using Whisper.
-    Uses 'medium' model for improved accuracy. Falls back to CPU if needed.
+    Uses 'large' model for improved accuracy. Falls back to CPU if needed.
     """
-    print("🎙️ Loading Whisper 'medium' model for improved accuracy...")
+    print("🎙️ Loading Whisper 'large' model for improved accuracy...")
 
     try:
-        # Try loading the medium model on GPU if available
+        # Try loading the large model on GPU if available
         if torch.cuda.is_available():
             device = "cuda"
             try:
-                model = whisper.load_model("medium", device=device)
+                model = whisper.load_model("large", device=device)
             except RuntimeError as e:
                 print("⚠️ CUDA out of memory. Falling back to CPU...")
-                model = whisper.load_model("medium", device="cpu")
+                model = whisper.load_model("large", device="cpu")
         else:
-            model = whisper.load_model("medium", device="cpu")
+            model = whisper.load_model("large", device="cpu")
     except Exception as e:
         print(f"❌ Failed to load model: {e}")
         return
@@ -82,13 +82,13 @@ def main():
     output_folder_name = "CPR"
     current_folder = os.getcwd()
     output_folder_full_path = os.path.join(current_folder, output_folder_name)
-    input_filename = "cpr5.mkv"
+    input_filename = "cpr7.mkv"
 
     video_path = os.path.join(output_folder_full_path, input_filename)
     subtitle_path = os.path.join(output_folder_full_path, "hebrew_subs.srt")
-    output_path = os.path.join(output_folder_full_path, "cpr5_with_subtitles.mkv")
+    output_path = os.path.join(output_folder_full_path, "cpr7_with_subtitles.mkv")
 
-    # youtube_url = "https://www.youtube.com/watch?v=yQsSXnkkYyE&t=4s"
+    # youtube_url = "https://www.youtube.com/watch?v=8UCqC-OBcQ8"
     # output_folder_name = "CPR"
     # current_folder = os.getcwd()
     # output_folder_full_path = os.path.join(current_folder, output_folder_name)
