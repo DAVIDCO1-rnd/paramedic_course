@@ -82,21 +82,21 @@ def main():
     output_folder_name = "CPR"
     current_folder = os.getcwd()
     output_folder_full_path = os.path.join(current_folder, output_folder_name)
-    input_filename = "cpr7.mkv"
+    input_filename = "cpr8.mkv"
 
     video_path = os.path.join(output_folder_full_path, input_filename)
     subtitle_path = os.path.join(output_folder_full_path, "hebrew_subs.srt")
-    output_path = os.path.join(output_folder_full_path, "cpr7_with_subtitles.mkv")
+    output_path = os.path.join(output_folder_full_path, "cpr8_with_subtitles.mkv")
 
-    # youtube_url = "https://www.youtube.com/watch?v=8UCqC-OBcQ8"
-    # output_folder_name = "CPR"
-    # current_folder = os.getcwd()
-    # output_folder_full_path = os.path.join(current_folder, output_folder_name)
-    # os.makedirs(output_folder_full_path, exist_ok=True)
-    # download_with_ytdlp(youtube_url, output_folder_full_path)
+    youtube_url = "https://www.youtube.com/watch?v=RmWBWxMuHnw"
+    output_folder_name = "CPR"
+    current_folder = os.getcwd()
+    output_folder_full_path = os.path.join(current_folder, output_folder_name)
+    os.makedirs(output_folder_full_path, exist_ok=True)
+    download_with_ytdlp(youtube_url, output_folder_full_path)
 
-    generate_hebrew_subtitles(video_path, subtitle_path)
-    embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path)
+    # generate_hebrew_subtitles(video_path, subtitle_path)
+    # embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path)
 
 if __name__ == "__main__":
     main()
