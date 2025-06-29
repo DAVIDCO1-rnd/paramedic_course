@@ -72,7 +72,14 @@ def embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path):
 
 def download_with_ytdlp(url, output_folder_full_path):
     ydl_opts = {
-        'outtmpl': os.path.join(output_folder_full_path, '%(title)s.%(ext)s')
+        'outtmpl': os.path.join(output_folder_full_path, '%(title)s.%(ext)s'),
+        'writesubtitles': True,  # Download subtitles
+        'subtitleslangs': ['he'],  # Only download Hebrew subtitles
+        'subtitlesformat': 'best',  # Choose the best subtitle format
+        'postprocessors': [{  # Embed subtitles in the video if needed
+            'key': 'FFmpegSubtitlesConvertor',
+            'format': 'srt'
+        }],
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
