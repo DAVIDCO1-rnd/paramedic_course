@@ -88,7 +88,7 @@ def main():
     subtitle_path = os.path.join(output_folder_full_path, "hebrew_subs.srt")
     output_path = os.path.join(output_folder_full_path, "cpr8_with_subtitles.mkv")
 
-    youtube_url = "https://www.youtube.com/watch?v=RmWBWxMuHnw"
+    youtube_url = "https://www.youtube.com/watch?v=-88NZZFw-GI&list=PLgW834AzEPalk3hkFrdnBAeu0MYa5V_WD&index=16"
     output_folder_name = "CPR"
     current_folder = os.getcwd()
     output_folder_full_path = os.path.join(current_folder, output_folder_name)
