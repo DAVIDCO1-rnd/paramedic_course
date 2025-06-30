@@ -4,10 +4,12 @@ import subprocess
 
 
 def extract_slides_from_videos(video_folder, scene_threshold=0.4):
-    for filename in os.listdir(video_folder):
+    videos_list = os.listdir(video_folder)
+    sorted_videos_list = sorted(videos_list)
+    for filename in sorted_videos_list:
         filepath = os.path.join(video_folder, filename)
 
-        if not os.path.isfile(filepath) or not filename.lower().endswith(('.mp4', '.mkv', '.avi', '.mov')):
+        if not os.path.isfile(filepath) or not filename.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', 'webm')):
             continue
 
         name_without_ext = os.path.splitext(filename)[0]
