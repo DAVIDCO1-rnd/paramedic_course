@@ -1,4 +1,4 @@
-checking something
+
 
 This project create anki cards for studying the paramedic (Hovshim) course.
 
