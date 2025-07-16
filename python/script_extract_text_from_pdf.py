@@ -38,6 +38,10 @@ def fix_line_direction(line):
     else:
         return ''.join(reversed_tokens)
 
+def is_bullet_line(line):
+    stripped = line.lstrip()
+    return stripped.startswith(("-", "*", "•", "▪", "‣"))
+
 def convert_pdf_to_txt(pdf_file_full_path, txt_file_full_path):
     with pdfplumber.open(pdf_file_full_path) as pdf:
         all_text = ""
@@ -46,13 +50,17 @@ def convert_pdf_to_txt(pdf_file_full_path, txt_file_full_path):
             print("Page {} of {}".format(index + 1, num_pages))
             page_text = page.extract_text()
             if page_text:
-                fixed_lines = [fix_line_direction(line) for line in page_text.splitlines()]
-                all_text += f"Page {index + 1}\n"  # Add page number as a separate line
-                all_text += '\n'.join(fixed_lines)
-                all_text += '\n\n'  # Two line breaks at the end of the page
+                all_text += f"Page {index + 1}\n"
+                for line in page_text.splitlines():
+                    fixed_line = fix_line_direction(line)
+                    if is_bullet_line(line):
+                        fixed_line = "•\t" + fixed_line.lstrip("-•*▪‣ \t")  # normalize bullets
+                    all_text += fixed_line + "\n"
+                all_text += "\n\n"  # Two line breaks after each page
 
     with open(txt_file_full_path, "w", encoding="utf-8") as f:
         f.write(all_text)
+
 
 
 
