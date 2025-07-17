@@ -14,3 +14,4 @@ pdfminer.six
 python-docx
 yt-dlp
 openai-whisper
+pdfplumber
