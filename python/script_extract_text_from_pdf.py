@@ -1,6 +1,7 @@
 import pdfplumber
 import re
 import os
+import shutil
 
 def is_hebrew(char):
     return '\u0590' <= char <= '\u05FF'
@@ -62,9 +63,13 @@ def normalize_bullet_line(line):
     return "   • " + cleaned
 
 def fix_bad_characters(text):
+    bullet_str = "   - "
     replacements = {
         "": "נ",
-        "": "   - ",
+        "": bullet_str,
+        "": bullet_str,
+        "": bullet_str,
+        "": bullet_str,
     }
     for bad, good in replacements.items():
         text = text.replace(bad, good)
@@ -103,16 +108,23 @@ def main():
     subfolder_name = 'advanced_emt'
     subfolder_full_path = os.path.join(parent_folder_full_path, subfolder_name)
 
+    txt_folder_name = "txt_files"
+    fxt_folder_full_path = os.path.join(subfolder_full_path, txt_folder_name)
+    if os.path.exists(fxt_folder_full_path):
+        shutil.rmtree(fxt_folder_full_path)  # delete the folder and its contents
+    os.makedirs(fxt_folder_full_path)  # create an empty folder
+
     # List all .pdf files in the folder
     pdf_files = [f for f in os.listdir(subfolder_full_path) if f.lower().endswith('.pdf')]
     pdf_files.sort()
 
     for pdf_index, pdf_file_name in enumerate(pdf_files):
+#        if pdf_index == 3:
         base_name = os.path.splitext(pdf_file_name)[0]
         txt_file_name = base_name + '.txt'
 
         pdf_file_full_path = os.path.join(subfolder_full_path, pdf_file_name)
-        txt_file_full_path = os.path.join(subfolder_full_path, txt_file_name)
+        txt_file_full_path = os.path.join(fxt_folder_full_path, txt_file_name)
 
         print(f"Processing {pdf_file_name} → {txt_file_name}")
         convert_pdf_to_txt(pdf_file_full_path, txt_file_full_path)
