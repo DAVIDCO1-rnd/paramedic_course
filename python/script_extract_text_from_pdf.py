@@ -84,7 +84,7 @@ def convert_pdf_to_txt(pdf_file_full_path, txt_file_full_path):
             print("{}:\t Page {} of {}".format(pdf_file_name, index + 1, num_pages))
             page_text = page.extract_text()
             if page_text:
-                all_text += f"Page {index + 1}\n"
+                all_text += f"שקף {index + 1}\n"
                 for line in page_text.splitlines():
                     fixed_line = fix_bad_characters(fix_line_direction(line))
                     if is_bullet_line(line):
