@@ -61,24 +61,36 @@ def normalize_bullet_line(line):
     cleaned = re.sub(r"[-•*▪‣\s]+$", "", cleaned)    # from end (for RTL)
     return "   • " + cleaned
 
+def fix_bad_characters(text):
+    replacements = {
+        "": "נ",
+        "": "   - ",
+    }
+    for bad, good in replacements.items():
+        text = text.replace(bad, good)
+    return text
+
 def convert_pdf_to_txt(pdf_file_full_path, txt_file_full_path):
+    pdf_file_name = os.path.basename(pdf_file_full_path)
     with pdfplumber.open(pdf_file_full_path) as pdf:
         all_text = ""
         num_pages = len(pdf.pages)
         for index, page in enumerate(pdf.pages):
-            print("Page {} of {}".format(index + 1, num_pages))
+            print("{}:\t Page {} of {}".format(pdf_file_name, index + 1, num_pages))
             page_text = page.extract_text()
             if page_text:
                 all_text += f"Page {index + 1}\n"
                 for line in page_text.splitlines():
-                    fixed_line = fix_line_direction(line)
+                    fixed_line = fix_bad_characters(fix_line_direction(line))
                     if is_bullet_line(line):
                         fixed_line = normalize_bullet_line(fixed_line)
                     all_text += fixed_line + "\n"
                 all_text += "\n\n"  # Two line breaks after each page
+        print("\n\n")
 
     with open(txt_file_full_path, "w", encoding="utf-8") as f:
         f.write(all_text)
+
 
 
 
@@ -95,7 +107,7 @@ def main():
     pdf_files = [f for f in os.listdir(subfolder_full_path) if f.lower().endswith('.pdf')]
     pdf_files.sort()
 
-    for pdf_file_name in pdf_files:
+    for pdf_index, pdf_file_name in enumerate(pdf_files):
         base_name = os.path.splitext(pdf_file_name)[0]
         txt_file_name = base_name + '.txt'
 
