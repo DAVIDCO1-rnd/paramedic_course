@@ -46,14 +46,20 @@ def fix_line_direction(line):
     else:
         return ''.join(reversed_tokens)
 
+bullet_symbols = ("-", "*", "•", "▪", "‣")
+
 def is_bullet_line(line):
-    stripped = line.lstrip()
-    return stripped.startswith(("-", "*", "•", "▪", "‣"))
+    stripped = line.strip()
+    return (
+        stripped.startswith(bullet_symbols) or
+        stripped.endswith(bullet_symbols)
+    )
 
 def normalize_bullet_line(line):
-    # Remove any common bullet characters and leading whitespace
-    cleaned = re.sub(r"^[-•*▪‣\s]+", "", line)
-    return "- " + cleaned
+    stripped = line.strip()
+    cleaned = re.sub(r"^[-•*▪‣\s]+", "", stripped)  # from start
+    cleaned = re.sub(r"[-•*▪‣\s]+$", "", cleaned)    # from end (for RTL)
+    return "   • " + cleaned
 
 def convert_pdf_to_txt(pdf_file_full_path, txt_file_full_path):
     with pdfplumber.open(pdf_file_full_path) as pdf:
@@ -84,14 +90,20 @@ def main():
     parent_folder_full_path = os.path.dirname(current_folder_full_path)
     subfolder_name = 'advanced_emt'
     subfolder_full_path = os.path.join(parent_folder_full_path, subfolder_name)
-    file_name = 'lesson_02_introduction_to_senior_cell'
-    pdf_file_name = file_name + '.pdf'
-    txt_file_name = file_name + '.txt'
 
-    pdf_file_full_path = os.path.join(subfolder_full_path, pdf_file_name)
-    txt_file_full_path = os.path.join(subfolder_full_path, txt_file_name)
+    # List all .pdf files in the folder
+    pdf_files = [f for f in os.listdir(subfolder_full_path) if f.lower().endswith('.pdf')]
+    pdf_files.sort()
 
-    convert_pdf_to_txt(pdf_file_full_path, txt_file_full_path)
+    for pdf_file_name in pdf_files:
+        base_name = os.path.splitext(pdf_file_name)[0]
+        txt_file_name = base_name + '.txt'
+
+        pdf_file_full_path = os.path.join(subfolder_full_path, pdf_file_name)
+        txt_file_full_path = os.path.join(subfolder_full_path, txt_file_name)
+
+        print(f"Processing {pdf_file_name} → {txt_file_name}")
+        convert_pdf_to_txt(pdf_file_full_path, txt_file_full_path)
 
 
 main()
