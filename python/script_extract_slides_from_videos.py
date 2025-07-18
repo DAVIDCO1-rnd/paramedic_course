@@ -55,7 +55,7 @@ def main():
     parent_folder_full_path = os.path.dirname(current_folder_full_path)
     folder_full_path = os.path.join(parent_folder_full_path, folder_name)
 
-    extract_slides_from_videos(folder_full_path, scene_threshold=0.005)
+    extract_slides_from_videos(folder_full_path, scene_threshold=0.0005)
 
 
 main()
