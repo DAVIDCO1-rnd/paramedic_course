@@ -3,17 +3,17 @@ import shutil
 import subprocess
 
 
-def extract_slides_from_videos(video_folder, scene_threshold=0.4):
-    videos_list = os.listdir(video_folder)
+def extract_slides_from_videos(videos_folder_full_path, slides_folder_full_path, scene_threshold=0.4):
+    videos_list = os.listdir(videos_folder_full_path)
     sorted_videos_list = sorted(videos_list)
     for filename in sorted_videos_list:
-        filepath = os.path.join(video_folder, filename)
+        filepath = os.path.join(videos_folder_full_path, filename)
 
         if not os.path.isfile(filepath) or not filename.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', 'webm')):
             continue
 
         name_without_ext = os.path.splitext(filename)[0]
-        output_folder = os.path.join(video_folder, name_without_ext)
+        output_folder = os.path.join(slides_folder_full_path, name_without_ext)
 
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
@@ -50,12 +50,14 @@ def extract_slides_from_videos(video_folder, scene_threshold=0.4):
 
 
 def main():
-    folder_name = "slides"
+    slides_folder_name = "slides"
+    videos_folder_name = "videos"
     current_folder_full_path = os.getcwd()
     parent_folder_full_path = os.path.dirname(current_folder_full_path)
-    folder_full_path = os.path.join(parent_folder_full_path, folder_name)
+    slides_folder_full_path = os.path.join(parent_folder_full_path, slides_folder_name)
+    videos_folder_full_path = os.path.join(parent_folder_full_path, videos_folder_name)
 
-    extract_slides_from_videos(folder_full_path, scene_threshold=0.0005)
+    extract_slides_from_videos(videos_folder_full_path, slides_folder_full_path, scene_threshold=0.0005)
 
 
 main()
