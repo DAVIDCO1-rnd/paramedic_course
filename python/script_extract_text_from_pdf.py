@@ -83,6 +83,13 @@ def convert_pdf_to_txt(pdf_file_full_path, txt_file_full_path):
         for index, page in enumerate(pdf.pages):
             print("{}:\t Page {} of {}".format(pdf_file_name, index + 1, num_pages))
             page_text = page.extract_text()
+            replacements = {
+                "(cid:1)": "•",
+                "(cid:2)": "◦",
+                "(1:dic)": ""  # or whatever you want
+            }
+            for bad, good in replacements.items():
+                page_text = page_text.replace(bad, good)
             if page_text:
                 all_text += f"שקף {index + 1} מתוך {num_pages} \n"
                 for line in page_text.splitlines():
@@ -117,6 +124,7 @@ def main():
     # List all .pdf files in the folder
     pdf_files = [f for f in os.listdir(subfolder_full_path) if f.lower().endswith('.pdf')]
     pdf_files.sort()
+    #pdf_files = ["lesson_05_anamnesis_and_physical_exam.pdf"]
 
     for pdf_index, pdf_file_name in enumerate(pdf_files):
 #        if pdf_index == 3:
