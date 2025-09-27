@@ -52,10 +52,12 @@ def extract_slides_from_videos(videos_folder_full_path, slides_folder_full_path,
 def main():
     slides_folder_name = "slides"
     videos_folder_name = "videos"
+    advanced_emt_name = "advanced_emt"
     current_folder_full_path = os.getcwd()
     parent_folder_full_path = os.path.dirname(current_folder_full_path)
-    slides_folder_full_path = os.path.join(parent_folder_full_path, slides_folder_name)
-    videos_folder_full_path = os.path.join(parent_folder_full_path, videos_folder_name)
+    advanced_emt_full_path = os.path.join(parent_folder_full_path, advanced_emt_name)
+    slides_folder_full_path = os.path.join(advanced_emt_full_path, slides_folder_name)
+    videos_folder_full_path = os.path.join(advanced_emt_full_path, videos_folder_name)
 
     extract_slides_from_videos(videos_folder_full_path, slides_folder_full_path, scene_threshold=0.0005)
 
