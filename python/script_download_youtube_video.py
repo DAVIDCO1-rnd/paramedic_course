@@ -71,39 +71,68 @@ def embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path):
     print(f"✅ Finished! Subtitled video saved as: {output_path}")
 
 def download_with_ytdlp(url, output_folder_full_path):
+    outtmpl = os.path.join(output_folder_full_path, '%(title)s.%(ext)s')
+    created = []
+
+    def hook(d):
+        if d.get('status') == 'finished' and d.get('filename'):
+            created.append(d['filename'])
+
     ydl_opts = {
-        'outtmpl': os.path.join(output_folder_full_path, '%(title)s.%(ext)s'),
-        'writesubtitles': True,  # Download subtitles
-        'subtitleslangs': ['he'],  # Only download Hebrew subtitles
-        'subtitlesformat': 'best',  # Choose the best subtitle format
-        'postprocessors': [{  # Embed subtitles in the video if needed
-            'key': 'FFmpegSubtitlesConvertor',
-            'format': 'srt'
-        }],
+        'outtmpl': outtmpl,
+        'writesubtitles': True,
+        'writeautomaticsub': True,
+        'subtitleslangs': ['he', 'he.*', 'iw'],   # Hebrew and legacy variants
+        'subtitlesformat': 'srt/best',
+        'postprocessors': [
+            {'key': 'FFmpegSubtitlesConvertor', 'format': 'srt'}
+        ],
+        'progress_hooks': [hook],
     }
 
+    # --- Download video ---
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+        info = ydl.extract_info(url, download=True)
+        video_path = ydl.prepare_filename(info)
+
+    video_name = os.path.basename(video_path)
+
+    # --- Find the corresponding Hebrew subtitle file ---
+    base_no_ext = os.path.splitext(video_path)[0]
+    subtitle_name = None
+    for lang in ('he', 'iw', 'he-IL'):
+        cand = f"{base_no_ext}.{lang}.srt"
+        if os.path.isfile(cand):
+            subtitle_name = os.path.basename(cand)
+            break
+
+    # Fallback: use any .srt detected by hook
+    if not subtitle_name:
+        for f in created:
+            if f.lower().endswith('.srt') and os.path.isfile(f):
+                subtitle_name = os.path.basename(f)
+                break
+
+    return video_name, subtitle_name
 
 def main():
-    output_folder_name = "CPR"
+    output_folder_name = "CPR9"
     current_folder = os.getcwd()
     output_folder_full_path = os.path.join(current_folder, output_folder_name)
-    input_filename = "cpr8.mkv"
 
-    video_path = os.path.join(output_folder_full_path, input_filename)
-    subtitle_path = os.path.join(output_folder_full_path, "hebrew_subs.srt")
-    output_path = os.path.join(output_folder_full_path, "cpr8_with_subtitles.mkv")
 
-    youtube_url = "https://www.youtube.com/watch?v=-88NZZFw-GI&list=PLgW834AzEPalk3hkFrdnBAeu0MYa5V_WD&index=16"
-    output_folder_name = "CPR"
-    current_folder = os.getcwd()
-    output_folder_full_path = os.path.join(current_folder, output_folder_name)
+    youtube_url = "https://www.youtube.com/watch?v=EFKjpgBbuKU"
     os.makedirs(output_folder_full_path, exist_ok=True)
-    download_with_ytdlp(youtube_url, output_folder_full_path)
+    video_name_with_extension, subtitles_filename = download_with_ytdlp(youtube_url, output_folder_full_path)
+    video_name, video_extension = os.path.splitext(video_name_with_extension)
+    video_name_with_subtitles = video_name + "_with_subtitles"
+    video_name_with_subtitles_with_extension = video_name_with_subtitles + "." + video_extension
 
-    # generate_hebrew_subtitles(video_path, subtitle_path)
-    # embed_subtitles_with_ffmpeg(video_path, subtitle_path, output_path)
+    video_full_path = os.path.join(output_folder_full_path, video_name_with_extension)
+    subtitles_full_path = os.path.join(output_folder_full_path, subtitles_filename)
+    video_with_subtitles_full_path = os.path.join(output_folder_full_path, video_name_with_subtitles_with_extension)
+
+    embed_subtitles_with_ffmpeg(video_full_path, subtitles_full_path, video_with_subtitles_full_path)
 
 if __name__ == "__main__":
     main()
