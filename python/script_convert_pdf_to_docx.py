@@ -45,9 +45,9 @@ def convert_pdf_to_docx(pdf_path, docx_path):
 def main():
     current_folder_full_path = os.getcwd()
     parent_folder_full_path = os.path.dirname(current_folder_full_path)
-    subfolder_name = 'course_004_patient_treat'
+    subfolder_name = 'books'
     subfolder_full_path = os.path.join(parent_folder_full_path, subfolder_name)
-    file_name = 'lecture_001_PatientTreat-Medics'
+    file_name = 'paramedics_full_course'
     pdf_file_name = file_name + '.pdf'
     docx_file_name = file_name + '.docx'
 
