@@ -32,7 +32,7 @@ def convert_srt_to_transcript(srt_file_full_path):
             prev_line = line
 
     # Join with line breaks
-    transcript_text = "\n".join(transcript_lines)
+    transcript_text = " ".join(transcript_lines)
 
     # Save to a text file
     output_file = os.path.splitext(srt_file_full_path)[0] + "_transcript.txt"
