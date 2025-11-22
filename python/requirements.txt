@@ -15,3 +15,6 @@ python-docx
 yt-dlp
 openai-whisper
 pdfplumber
+
+certifi
+python-certifi-win32; sys_platform == "win32"
